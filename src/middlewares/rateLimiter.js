@@ -1,18 +1,19 @@
-import rateLimit from 'express-rate-limit';
+import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
 import slowDown from 'express-slow-down';
 import { env } from '../config/env.js';
 import { TooManyRequestsError } from '../utils/errors.js';
 
 /**
- * Get rate limit key
+ * Get rate limit key - uses ipKeyGenerator for proper IPv6 handling
  */
-const getKeyGenerator = (req) => {
+const getKeyGenerator = (req, res) => {
   // Add user context if authenticated
   if (req.user) {
     return `user:${req.user.id}`;
   }
 
-  return req.ip;
+  // Use the built-in ipKeyGenerator for proper IPv6 handling
+  return ipKeyGenerator(req, res);
 };
 
 /**

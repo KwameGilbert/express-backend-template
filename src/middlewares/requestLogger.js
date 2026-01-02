@@ -1,6 +1,6 @@
 import { generateUUID } from '../utils/helpers.js';
 import pinoHttp from 'pino-http';
-import { logger } from '../config/logger.js';
+import { httpLogger } from '../config/logger.js';
 import { isProduction } from '../config/env.js';
 
 /**
@@ -14,9 +14,10 @@ export const requestId = (req, res, next) => {
 
 /**
  * HTTP request logging middleware
+ * Uses separate httpLogger for HTTP-specific logs
  */
 export const requestLogger = pinoHttp({
-  logger,
+  logger: httpLogger,
   genReqId: (req) => req.id,
   customLogLevel: (req, res, err) => {
     if (res.statusCode >= 500 || err) return 'error';

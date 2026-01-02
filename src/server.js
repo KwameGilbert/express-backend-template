@@ -9,7 +9,7 @@ import { testConnection, closeConnections } from './config/database.js';
 const startServer = async () => {
   try {
     // Test database connection
-    await testConnection();
+    // await testConnection();
 
     // Start HTTP server
     const server = app.listen(env.PORT, env.HOST, () => {

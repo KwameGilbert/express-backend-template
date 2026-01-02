@@ -30,7 +30,10 @@ const envSchema = z.object({
   JWT_REFRESH_EXPIRES_IN: z.string().default('30d'),
 
   // Security
+  HASH_ALGORITHM: z.enum(['bcrypt', 'scrypt', 'pbkdf2', 'argon2']).default('bcrypt'),
   BCRYPT_ROUNDS: z.string().default('12').transform(Number),
+  HASH_KEY_LENGTH: z.string().default('64').transform(Number), // For scrypt and pbkdf2
+  HASH_SALT_LENGTH: z.string().default('16').transform(Number), // For scrypt and pbkdf2
   RATE_LIMIT_WINDOW_MS: z.string().default('900000').transform(Number), // 15 minutes
   RATE_LIMIT_MAX: z.string().default('100').transform(Number),
 

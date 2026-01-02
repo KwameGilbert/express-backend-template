@@ -5,8 +5,8 @@
   "type": "module",
   "main": "src/server.js",
   "scripts": {
-    "start": "node src/server.js",
-    "dev": "nodemon src/server.js",
+    "start": "pnpm run migrate && node src/server.js",
+    "dev": "pnpm run migrate && nodemon src/server.js",
     "test": "NODE_OPTIONS='--experimental-vm-modules' jest",
     "test:watch": "NODE_OPTIONS='--experimental-vm-modules' jest --watch",
     "test:coverage": "NODE_OPTIONS='--experimental-vm-modules' jest --coverage",
@@ -18,8 +18,8 @@
     "migrate:make": "knex migrate:make --knexfile src/config/knexfile.js",
     "seed": "knex seed:run --knexfile src/config/knexfile.js",
     "seed:make": "knex seed:make --knexfile src/config/knexfile.js",
-    "db:reset": "pnpm run migrate:rollback && npm run migrate && npm run seed"
-  },
+    "db:reset": "pnpm run migrate:rollback && pnpm run migrate && pnpm run seed"
+  },  
   "keywords": [
     "express",
     "backend",

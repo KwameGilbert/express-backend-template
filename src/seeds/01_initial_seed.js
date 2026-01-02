@@ -1,4 +1,4 @@
-import bcrypt from 'bcrypt';
+import { passwordHasher } from '../utils/passwordHasher.js';
 
 /**
  * Seed the database with initial data
@@ -9,7 +9,7 @@ export const seed = async (knex) => {
   await knex('users').del();
 
   // Create a super admin user
-  const passwordHash = await bcrypt.hash('Admin@123', 12);
+  const passwordHash = await passwordHasher.hash('Admin@123');
 
   const [superAdmin] = await knex('users')
     .insert({

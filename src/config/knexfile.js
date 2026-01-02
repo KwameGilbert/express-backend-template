@@ -20,11 +20,11 @@ const config = {
     max: parseInt(process.env.DB_POOL_MAX) || 10,
   },
   migrations: {
-    directory: '../migrations',
+    directory: './../migrations',
     tableName: 'knex_migrations',
   },
   seeds: {
-    directory: '../seeds',
+    directory: './../seeds',
   },
 };
 

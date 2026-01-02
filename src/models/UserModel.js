@@ -1,6 +1,5 @@
 import { BaseModel } from './BaseModel.js';
-import bcrypt from 'bcrypt';
-import { env } from '../config/env.js';
+import { passwordHasher } from '../utils/passwordHasher.js';
 
 /**
  * User Model
@@ -62,17 +61,17 @@ class UserModelClass extends BaseModel {
   }
 
   /**
-   * Hash a password
+   * Hash a password using configured algorithm
    */
   async hashPassword(password) {
-    return bcrypt.hash(password, env.BCRYPT_ROUNDS);
+    return passwordHasher.hash(password);
   }
 
   /**
-   * Compare password with hash
+   * Compare password with hash using auto-detected algorithm
    */
   async comparePassword(password, hash) {
-    return bcrypt.compare(password, hash);
+    return passwordHasher.verify(password, hash);
   }
 
   /**
