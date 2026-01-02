@@ -19,7 +19,7 @@
     "seed": "knex seed:run --knexfile src/config/knexfile.js",
     "seed:make": "knex seed:make --knexfile src/config/knexfile.js",
     "db:reset": "pnpm run migrate:rollback && pnpm run migrate && pnpm run seed"
-  },  
+  },
   "keywords": [
     "express",
     "backend",
@@ -49,6 +49,8 @@
     "pino": "^10.1.0",
     "pino-http": "^11.0.0",
     "pino-pretty": "^14.0.0",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1",
     "zod": "^4.3.4"
   },
   "devDependencies": {

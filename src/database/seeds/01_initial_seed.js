@@ -1,4 +1,4 @@
-import { passwordHasher } from '../utils/passwordHasher.js';
+import { passwordHasher } from '../../utils/passwordHasher.js';
 
 /**
  * Seed the database with initial data

@@ -4,7 +4,7 @@ import path from 'path';
 import fs from 'fs';
 
 // Base logs directory
-const logsDir = path.join(process.cwd(), 'logs');
+const logsDir = path.join(process.cwd(), 'src/logs');
 
 // Create log subdirectories
 const logDirs = {

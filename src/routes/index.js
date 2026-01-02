@@ -6,6 +6,7 @@ import { rateLimiter } from '../middlewares/rateLimiter.js';
 import authRoutes from './authRoutes.js';
 import userRoutes from './userRoutes.js';
 import healthRoutes from './healthRoutes.js';
+import docsRoutes from './docsRoutes.js';
 
 const router = Router();
 
@@ -21,6 +22,9 @@ const v1Router = Router();
 
 // Apply rate limiter to all API routes
 v1Router.use(rateLimiter);
+
+// API Documentation
+v1Router.use('/docs', docsRoutes);
 
 // Auth routes
 v1Router.use('/auth', authRoutes);

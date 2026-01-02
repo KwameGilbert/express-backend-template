@@ -14,9 +14,14 @@ const envSchema = z.object({
   HOST: z.string().default('0.0.0.0'),
 
   // Database
+  DB_CLIENT: z.enum(['pg', 'mysql', 'mysql2']).default('pg'),
   DATABASE_URL: z.string().url().optional(),
   DB_HOST: z.string().default('localhost'),
-  DB_PORT: z.string().default('5432').transform(Number),
+  DB_PORT: z.string().transform((val) => {
+    // Default ports based on client
+    if (!val) return undefined;
+    return Number(val);
+  }).optional(),
   DB_NAME: z.string().default('app_db'),
   DB_USER: z.string().default('postgres'),
   DB_PASSWORD: z.string().default(''),
