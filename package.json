@@ -18,7 +18,7 @@
     "migrate:make": "knex migrate:make --knexfile src/config/knexfile.js",
     "seed": "knex seed:run --knexfile src/config/knexfile.js",
     "seed:make": "knex seed:make --knexfile src/config/knexfile.js",
-    "db:reset": "npm run migrate:rollback && npm run migrate && npm run seed"
+    "db:reset": "pnpm run migrate:rollback && npm run migrate && npm run seed"
   },
   "keywords": [
     "express",

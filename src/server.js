@@ -17,8 +17,6 @@ const startServer = async () => {
         port: env.PORT,
         host: env.HOST,
         env: env.NODE_ENV,
-        multiTenant: env.MULTI_TENANT,
-        tenantStrategy: env.TENANT_STRATEGY,
       }, `🚀 ${env.APP_NAME} is running`);
 
       logger.info(`📍 API available at http://${env.HOST}:${env.PORT}/api/${env.API_VERSION}`);

@@ -4,7 +4,6 @@ import helmet from 'helmet';
 import compression from 'compression';
 
 import { env } from './config/env.js';
-import { logger } from './config/logger.js';
 import { requestId, requestLogger } from './middlewares/requestLogger.js';
 import { notFoundHandler, errorHandler } from './middlewares/errorHandler.js';
 import routes from './routes/index.js';
@@ -42,7 +41,7 @@ const createApp = () => {
     origin: env.CORS_ORIGIN === '*' ? '*' : env.CORS_ORIGIN.split(','),
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Request-ID', env.TENANT_HEADER],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Request-ID'],
   }));
 
   // Request compression
