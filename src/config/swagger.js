@@ -74,9 +74,24 @@ const autoRoutes = [
 
   postDoc('/auth/logout', {
     summary: 'Logout user',
-    description: 'Invalidate current user session',
+    description: 'Invalidate current user session and blacklist token',
     tags: ['Authentication'],
     auth: true,
+  }),
+
+  getDoc('/auth/verify-email', {
+    summary: 'Verify email address',
+    description: 'Verify email using the token sent via email',
+    tags: ['Authentication'],
+    auth: false,
+  }),
+
+  postDoc('/auth/resend-verification', {
+    summary: 'Resend verification email',
+    description: 'Resend email verification link to user',
+    tags: ['Authentication'],
+    bodySchema: authSchemas.forgotPassword,
+    auth: false,
   }),
 
   // User Routes

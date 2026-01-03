@@ -48,8 +48,31 @@ const envSchema = z.object({
   // CORS
   CORS_ORIGIN: z.string().default('*'),
 
+  // Upload
+  UPLOAD_STRATEGY: z.enum(['local', 'cloudinary']).default('local'),
+  UPLOAD_LOCAL_PATH: z.string().default('uploads'),
+  UPLOAD_MAX_FILE_SIZE: z.string().default('5242880').transform(Number), // 5MB
+  UPLOAD_MAX_IMAGE_SIZE: z.string().default('5242880').transform(Number), // 5MB
+  UPLOAD_MAX_DOCUMENT_SIZE: z.string().default('10485760').transform(Number), // 10MB
+  UPLOAD_MAX_VIDEO_SIZE: z.string().default('52428800').transform(Number), // 50MB
+  
+  // Cloudinary (optional, only needed if using cloudinary)
+  CLOUDINARY_CLOUD_NAME: z.string().optional(),
+  CLOUDINARY_API_KEY: z.string().optional(),
+  CLOUDINARY_API_SECRET: z.string().optional(),
+  CLOUDINARY_FOLDER: z.string().default('uploads'),
+
+  // Email (SMTP)
+  EMAIL_HOST: z.string().optional(),
+  EMAIL_PORT: z.string().transform(Number).optional(),
+  EMAIL_SECURE: z.string().optional(),
+  EMAIL_USER: z.string().optional(),
+  EMAIL_PASSWORD: z.string().optional(),
+  EMAIL_FROM: z.string().optional(),
+
   // App
   APP_NAME: z.string().default('Express Backend'),
+  APP_URL: z.string().optional(),
   API_VERSION: z.string().default('v1'),
 });
 

@@ -13,7 +13,7 @@ export class AuthController {
   static register = asyncHandler(async (req, res) => {
     const result = await AuthService.register(req.body);
 
-    return ApiResponse.created(res, result, 'User registered successfully');
+    return ApiResponse.created(res, result, result.message || 'User registered successfully');
   });
 
   /**
@@ -96,12 +96,49 @@ export class AuthController {
   });
 
   /**
-   * Logout (client-side token invalidation)
+   * Verify email with token
+   * GET /auth/verify-email
+   */
+  static verifyEmail = asyncHandler(async (req, res) => {
+    const { token } = req.query;
+    
+    if (!token) {
+      return ApiResponse.badRequest(res, 'Verification token is required');
+    }
+
+    const user = await AuthService.verifyEmail(token);
+
+    return ApiResponse.success(res, { verified: true }, 'Email verified successfully');
+  });
+
+  /**
+   * Resend verification email
+   * POST /auth/resend-verification
+   */
+  static resendVerification = asyncHandler(async (req, res) => {
+    const { email } = req.body;
+    await AuthService.resendVerification(email);
+
+    return ApiResponse.success(
+      res,
+      null,
+      'If your email is registered and not verified, you will receive a verification link'
+    );
+  });
+
+  /**
+   * Logout - blacklist the token
    * POST /auth/logout
    */
   static logout = asyncHandler(async (req, res) => {
-    // In a stateless JWT setup, logout is handled client-side
-    // If using refresh tokens with a blacklist, handle here
+    // Get the token from header
+    const authHeader = req.headers.authorization;
+    const accessToken = authHeader?.split(' ')[1];
+    const { refreshToken } = req.body || {};
+
+    if (accessToken) {
+      await AuthService.logout(accessToken, refreshToken);
+    }
 
     return ApiResponse.success(res, null, 'Logged out successfully');
   });

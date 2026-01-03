@@ -2,8 +2,19 @@ import jwt from 'jsonwebtoken';
 import { env } from '../config/env.js';
 import { UnauthorizedError, ForbiddenError } from '../utils/errors.js';
 
+// Lazy load tokenService to avoid circular dependencies
+let tokenService = null;
+const getTokenService = async () => {
+  if (!tokenService) {
+    const module = await import('../services/TokenService.js');
+    tokenService = module.tokenService;
+  }
+  return tokenService;
+};
+
 /**
  * Verify JWT token and attach user to request
+ * Checks token blacklist for invalidated tokens
  */
 export const authenticate = async (req, res, next) => {
   try {
@@ -14,6 +25,14 @@ export const authenticate = async (req, res, next) => {
     }
 
     const token = authHeader.split(' ')[1];
+
+    // Check if token is blacklisted
+    const tokenSvc = await getTokenService();
+    const isBlacklisted = await tokenSvc.isBlacklisted(token);
+    
+    if (isBlacklisted) {
+      throw new UnauthorizedError('Token has been invalidated');
+    }
 
     const decoded = jwt.verify(token, env.JWT_SECRET);
 
@@ -45,13 +64,20 @@ export const optionalAuth = async (req, res, next) => {
 
     if (authHeader && authHeader.startsWith('Bearer ')) {
       const token = authHeader.split(' ')[1];
-      const decoded = jwt.verify(token, env.JWT_SECRET);
+      
+      // Check blacklist
+      const tokenSvc = await getTokenService();
+      const isBlacklisted = await tokenSvc.isBlacklisted(token);
+      
+      if (!isBlacklisted) {
+        const decoded = jwt.verify(token, env.JWT_SECRET);
 
-      req.user = {
-        id: decoded.sub || decoded.id,
-        email: decoded.email,
-        role: decoded.role,
-      };
+        req.user = {
+          id: decoded.sub || decoded.id,
+          email: decoded.email,
+          role: decoded.role,
+        };
+      }
     }
 
     next();
@@ -132,6 +158,25 @@ export const requireOwnership = (getResourceOwnerId) => {
 };
 
 /**
+ * Require email to be verified
+ */
+export const requireVerifiedEmail = async (req, res, next) => {
+  if (!req.user) {
+    return next(new UnauthorizedError('Authentication required'));
+  }
+
+  // Import UserModel lazily to avoid circular deps
+  const { UserModel } = await import('../models/UserModel.js');
+  const user = await UserModel.findById(req.user.id);
+
+  if (!user || !user.email_verified_at) {
+    return next(new ForbiddenError('Please verify your email address first'));
+  }
+
+  next();
+};
+
+/**
  * Generate JWT tokens
  */
 export const generateTokens = (payload) => {
@@ -168,6 +213,7 @@ export default {
   requireRole,
   requirePermission,
   requireOwnership,
+  requireVerifiedEmail,
   generateTokens,
   verifyRefreshToken,
 };

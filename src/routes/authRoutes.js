@@ -43,6 +43,25 @@ router.post(
 );
 
 /**
+ * @route GET /auth/verify-email
+ * @desc Verify email with token
+ * @access Public
+ */
+router.get('/verify-email', AuthController.verifyEmail);
+
+/**
+ * @route POST /auth/resend-verification
+ * @desc Resend verification email
+ * @access Public
+ */
+router.post(
+  '/resend-verification',
+  authRateLimiter,
+  validateBody(authSchemas.forgotPassword), // Same schema (just email)
+  AuthController.resendVerification
+);
+
+/**
  * @route GET /auth/me
  * @desc Get current user profile
  * @access Private
@@ -99,7 +118,7 @@ router.post(
 
 /**
  * @route POST /auth/logout
- * @desc Logout user
+ * @desc Logout user (blacklist token)
  * @access Private
  */
 router.post('/logout', authenticate, AuthController.logout);

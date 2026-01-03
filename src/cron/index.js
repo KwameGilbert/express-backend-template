@@ -137,11 +137,27 @@ export const cleanupDeletedRecords = async () => {
 };
 
 /**
+ * Cleanup token tables (verification, reset, blacklist)
+ * Runs every hour
+ */
+export const cleanupTokens = async () => {
+  const { tokenService } = await import('../services/TokenService.js');
+  const result = await tokenService.cleanup();
+  
+  if (result.deletedTokens > 0 || result.deletedBlacklist > 0) {
+    logger.info(result, 'Cleaned up token tables');
+  }
+};
+
+/**
  * Initialize and register all jobs
  */
 export const initializeJobs = () => {
-  // Cleanup expired tokens every hour
+  // Cleanup expired password reset tokens every hour (legacy)
   registerJob('cleanup-expired-tokens', '0 * * * *', cleanupExpiredTokens);
+
+  // Cleanup token tables every hour
+  registerJob('cleanup-token-tables', '30 * * * *', cleanupTokens);
 
   // Cleanup deleted records daily at midnight
   registerJob('cleanup-deleted-records', '0 0 * * *', cleanupDeletedRecords);
@@ -157,3 +173,4 @@ export default {
   getAllJobsStatus,
   initializeJobs,
 };
+

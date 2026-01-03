@@ -1,279 +1,335 @@
 # Express Backend Template
 
-A production-ready Express.js backend template.
+A **production-ready** Express.js backend template with authentication, email verification, file uploads, and auto-generated API documentation.
 
-## 🌟 Features
+---
 
-- **Authentication System** - JWT-based auth with refresh tokens
-- **Role-Based Access Control** - User, Admin, and Super Admin roles
-- **Request Validation** - Zod schema validation
-- **Error Handling** - Centralized error handling with custom error classes
-- **Logging** - Pino logger with request context
-- **Rate Limiting** - Configurable rate limiting
-- **Database** - PostgreSQL with Knex query builder
-- **Health Checks** - Ready for Kubernetes deployment
+## ✨ Features
+
+| Category     | Features                                                                    |
+| ------------ | --------------------------------------------------------------------------- |
+| **Auth**     | JWT, refresh tokens, email verification, password reset, token blacklisting |
+| **Database** | PostgreSQL/MySQL, Knex migrations, BaseModel with CRUD                      |
+| **Email**    | SMTP-based email service with templates                                     |
+| **Uploads**  | Local or Cloudinary, group-based organization                               |
+| **API Docs** | Auto-generated Swagger from Zod schemas                                     |
+| **Security** | Helmet, CORS, rate limiting, password hashing                               |
+| **Logging**  | Pino (console + file), request logging                                      |
+| **Jobs**     | Cron scheduler for background tasks                                         |
+| **Docker**   | Dockerfile + docker-compose ready                                           |
+
+---
 
 ## 🚀 Quick Start
 
-### Prerequisites
-
-- Node.js >= 20.0.0
-- PostgreSQL >= 14
-- pnpm (recommended) or npm
-
-### Installation
-
-1. **Clone the repository**
-
 ```bash
-git clone <repository-url>
+# Clone and install
+git clone <repo-url>
 cd express-backend-template
-```
-
-2. **Install dependencies**
-
-```bash
 pnpm install
-```
 
-3. **Configure environment**
-
-```bash
+# Configure
 cp .env.example .env
-# Edit .env with your configuration
-```
+# Edit .env with your settings
 
-4. **Create database**
-
-```bash
-createdb app_db
-```
-
-5. **Run migrations**
-
-```bash
-pnpm run migrate
-```
-
-6. **Seed database (optional)**
-
-```bash
-pnpm run seed
-```
-
-7. **Start the server**
-
-```bash
-# Development
+# Run
 pnpm run dev
-
-# Production
-pnpm start
 ```
 
-### Using Docker
+**Access:**
 
-```bash
-# Start with Docker Compose
-docker-compose up -d
+- API: http://localhost:3000
+- Docs: http://localhost:3000/api/v1/docs
 
-# Development with hot reload
-docker-compose --profile dev up app-dev
-```
+---
 
-## 📁 Project Structure
+## 📁 Structure
 
 ```
 src/
-├── config/             # Configuration files
-│   ├── database.js     # Database connection
-│   ├── env.js          # Environment validation
-│   └── logger.js       # Pino logger setup
-│
-├── controllers/        # Route controllers
-│   ├── AuthController.js
-│   ├── HealthController.js
-│   └── UserController.js
-│
-├── middlewares/        # Express middlewares
-│   ├── auth.js         # Authentication & authorization
-│   ├── errorHandler.js # Error handling
-│   ├── rateLimiter.js  # Rate limiting
-│   ├── requestLogger.js # Request logging
-│   └── validate.js     # Request validation
-│
-├── migrations/         # Database migrations
-├── models/             # Data models
-│   ├── BaseModel.js    # Base model with CRUD + pagination
-│   └── UserModel.js
-│
-├── routes/             # API routes
-├── seeds/              # Database seeders
-├── services/           # Business logic
-├── utils/              # Utility functions
-├── validators/         # Zod validation schemas
-├── jobs/               # Cron jobs
-│
-├── app.js              # Express app setup
-└── server.js           # Server entry point
+├── config/         # Configuration (db, env, logger, swagger, upload)
+├── controllers/    # Route handlers
+├── database/       # Migrations and seeds
+├── middlewares/    # Auth, validation, rate limiting, uploads
+├── models/         # BaseModel + data models
+├── routes/         # API routes
+├── services/       # Business logic (Auth, Email, Token, Upload, User)
+├── utils/          # Helpers, errors, response formatters
+├── validators/     # Zod schemas
+├── cron/           # Scheduled jobs
+├── app.js          # Express setup
+└── server.js       # Entry point
 ```
 
-## 🔧 Configuration
-
-### Environment Variables
-
-| Variable                 | Description               | Default       |
-| ------------------------ | ------------------------- | ------------- |
-| `NODE_ENV`               | Environment mode          | `development` |
-| `PORT`                   | Server port               | `3000`        |
-| `DATABASE_URL`           | PostgreSQL connection URL | -             |
-| `DB_HOST`                | Database host             | `localhost`   |
-| `DB_PORT`                | Database port             | `5432`        |
-| `DB_NAME`                | Database name             | `app_db`      |
-| `DB_USER`                | Database user             | `postgres`    |
-| `DB_PASSWORD`            | Database password         | -             |
-| `JWT_SECRET`             | JWT signing secret        | **Required**  |
-| `JWT_EXPIRES_IN`         | Access token expiry       | `7d`          |
-| `JWT_REFRESH_SECRET`     | Refresh token secret      | -             |
-| `JWT_REFRESH_EXPIRES_IN` | Refresh token expiry      | `30d`         |
-| `LOG_LEVEL`              | Logging level             | `info`        |
-| `CORS_ORIGIN`            | Allowed CORS origins      | `*`           |
-
-## 📚 API Endpoints
-
-### Authentication
-
-| Method | Endpoint                       | Description            |
-| ------ | ------------------------------ | ---------------------- |
-| POST   | `/api/v1/auth/register`        | Register new user      |
-| POST   | `/api/v1/auth/login`           | Login user             |
-| POST   | `/api/v1/auth/refresh`         | Refresh access token   |
-| GET    | `/api/v1/auth/me`              | Get current user       |
-| PATCH  | `/api/v1/auth/me`              | Update profile         |
-| POST   | `/api/v1/auth/change-password` | Change password        |
-| POST   | `/api/v1/auth/forgot-password` | Request password reset |
-| POST   | `/api/v1/auth/reset-password`  | Reset password         |
-| POST   | `/api/v1/auth/logout`          | Logout                 |
-
-### Users (Admin)
-
-| Method | Endpoint                       | Description     |
-| ------ | ------------------------------ | --------------- |
-| GET    | `/api/v1/users`                | List users      |
-| POST   | `/api/v1/users`                | Create user     |
-| GET    | `/api/v1/users/:id`            | Get user        |
-| PATCH  | `/api/v1/users/:id`            | Update user     |
-| DELETE | `/api/v1/users/:id`            | Delete user     |
-| PATCH  | `/api/v1/users/:id/role`       | Update role     |
-| POST   | `/api/v1/users/:id/activate`   | Activate user   |
-| POST   | `/api/v1/users/:id/deactivate` | Deactivate user |
-
-### Health
-
-| Method | Endpoint           | Description           |
-| ------ | ------------------ | --------------------- |
-| GET    | `/health`          | Basic health check    |
-| GET    | `/health/detailed` | Detailed health check |
-| GET    | `/health/ready`    | Readiness probe       |
-| GET    | `/health/live`     | Liveness probe        |
+---
 
 ## 🔐 Authentication
 
-### Request Headers
+### Endpoints
 
+| Method | Endpoint                    | Auth | Description                   |
+| ------ | --------------------------- | ---- | ----------------------------- |
+| POST   | `/auth/register`            | No   | Register + verification email |
+| POST   | `/auth/login`               | No   | Login                         |
+| POST   | `/auth/logout`              | Yes  | Logout + blacklist token      |
+| POST   | `/auth/refresh`             | No   | Refresh access token          |
+| GET    | `/auth/me`                  | Yes  | Get profile                   |
+| PATCH  | `/auth/me`                  | Yes  | Update profile                |
+| POST   | `/auth/change-password`     | Yes  | Change password               |
+| GET    | `/auth/verify-email`        | No   | Verify email (token in query) |
+| POST   | `/auth/resend-verification` | No   | Resend verification email     |
+| POST   | `/auth/forgot-password`     | No   | Request password reset        |
+| POST   | `/auth/reset-password`      | No   | Reset password with token     |
+
+### Configuration
+
+```env
+JWT_SECRET=your-secret-at-least-32-chars
+JWT_EXPIRES_IN=7d
+JWT_REFRESH_SECRET=your-refresh-secret
+JWT_REFRESH_EXPIRES_IN=30d
 ```
-Authorization: Bearer <access_token>
+
+---
+
+## 📧 Email
+
+SMTP-based email service with built-in templates.
+
+### Configuration
+
+```env
+EMAIL_HOST=smtp.example.com
+EMAIL_PORT=587
+EMAIL_USER=your_email
+EMAIL_PASSWORD=your_password
+EMAIL_FROM=noreply@example.com
 ```
 
-### Roles
+### Usage
 
-| Role          | Permissions        |
-| ------------- | ------------------ |
-| `user`        | Basic user access  |
-| `admin`       | User management    |
-| `super_admin` | Full system access |
+```javascript
+import { emailService } from './services/EmailService.js';
 
-## 🗄️ Database
+await emailService.send({ to, subject, html });
+await emailService.sendVerificationEmail(to, name, token);
+await emailService.sendPasswordResetEmail(to, name, token);
+```
 
-### Migrations
+---
+
+## 📁 File Uploads
+
+Supports local storage or Cloudinary with group-based organization.
+
+### Configuration
+
+```env
+UPLOAD_STRATEGY=local
+UPLOAD_LOCAL_PATH=uploads
+
+# Or for Cloudinary
+UPLOAD_STRATEGY=cloudinary
+CLOUDINARY_CLOUD_NAME=xxx
+CLOUDINARY_API_KEY=xxx
+CLOUDINARY_API_SECRET=xxx
+```
+
+### Usage
+
+```javascript
+import upload from './middlewares/upload.js';
+import { upload as uploadFile } from './services/UploadService.js';
+
+router.post('/image', upload('products').single('file'), async (req, res) => {
+  const result = await uploadFile(req.file, 'products');
+  // → uploads/products/123456-abc.jpg
+  res.json(result);
+});
+```
+
+### Add Upload Groups
+
+Edit `src/config/upload.js`:
+
+```javascript
+export const uploadGroups = {
+  products: { types: ALLOWED_TYPES.image, maxSize: 10 * 1024 * 1024 },
+  documents: { types: ALLOWED_TYPES.document, maxSize: 20 * 1024 * 1024 },
+};
+```
+
+---
+
+## 📊 Database
+
+### Configuration
+
+```env
+DB_CLIENT=pg          # or mysql2
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=app_db
+DB_USER=postgres
+DB_PASSWORD=password
+```
+
+### Commands
 
 ```bash
-# Run migrations
-pnpm run migrate
-
-# Rollback last migration
-pnpm run migrate:rollback
-
-# Create new migration
-pnpm run migrate:make <migration_name>
+pnpm run migrate              # Run migrations
+pnpm run migrate:make <name>  # Create migration
+pnpm run migrate:rollback     # Rollback
+pnpm run seed                 # Run seeds
+pnpm run db:reset             # Reset database
 ```
 
-### Seeds
+### BaseModel
 
-```bash
-# Run seeds
-pnpm run seed
+```javascript
+import { BaseModel } from './models/BaseModel.js';
 
-# Create new seed
-pnpm run seed:make <seed_name>
+class ProductModel extends BaseModel {
+  constructor() {
+    super('products', {
+      timestamps: true,
+      softDeletes: true,
+      searchableFields: ['name', 'description'],
+    });
+  }
+}
+
+// Usage
+await ProductModel.create({ name: 'Widget' });
+await ProductModel.findAll({ page: 1, limit: 10, search: 'widget' });
+await ProductModel.findById(id);
+await ProductModel.update(id, { name: 'New Name' });
+await ProductModel.delete(id);
 ```
 
-## 🧪 Testing
+---
 
-```bash
-# Run tests
-pnpm test
+## 📝 API Documentation
 
-# Run with coverage
-pnpm test:coverage
+Auto-generated from Zod schemas. Access at `/api/v1/docs`.
 
-# Watch mode
-pnpm test:watch
+### Add Routes to Docs
+
+Edit `src/config/swagger.js`:
+
+```javascript
+import { postDoc, getDoc } from '../utils/routeDoc.js';
+
+const autoRoutes = [
+  postDoc('/products', {
+    summary: 'Create product',
+    tags: ['Products'],
+    bodySchema: productSchemas.create,
+    auth: true,
+  }),
+];
 ```
 
-## 📦 Scripts
+---
 
-| Script          | Description                              |
-| --------------- | ---------------------------------------- |
-| `pnpm start`    | Start production server                  |
-| `pnpm dev`      | Start development server with hot reload |
-| `pnpm test`     | Run tests                                |
-| `pnpm lint`     | Run ESLint                               |
-| `pnpm lint:fix` | Fix ESLint issues                        |
-| `pnpm format`   | Format code with Prettier                |
-| `pnpm migrate`  | Run database migrations                  |
-| `pnpm seed`     | Seed database                            |
+## ✅ Validation
+
+Using Zod:
+
+```javascript
+// src/validators/schemas.js
+export const productSchemas = {
+  create: z.object({
+    name: z.string().min(1),
+    price: z.number().positive(),
+  }),
+};
+
+// In routes
+import { validateBody } from './middlewares/validate.js';
+router.post('/products', validateBody(productSchemas.create), handler);
+```
+
+---
+
+## ⏰ Cron Jobs
+
+```javascript
+// src/cron/index.js
+import { registerJob } from './index.js';
+
+registerJob('daily-cleanup', '0 0 * * *', async () => {
+  // Runs daily at midnight
+});
+```
+
+---
 
 ## 🐳 Docker
 
-### Build and Run
-
 ```bash
-# Build image
-docker build -t express-backend .
+# Development
+docker-compose up -d
 
-# Run container
+# Production build
+docker build -t express-backend .
 docker run -p 3000:3000 --env-file .env express-backend
 ```
 
-### Docker Compose
+---
 
-```bash
-# Production
-docker-compose up -d
+## 📜 Scripts
 
-# Development with hot reload
-docker-compose --profile dev up app-dev
-```
+| Script         | Description                 |
+| -------------- | --------------------------- |
+| `pnpm dev`     | Development with hot reload |
+| `pnpm start`   | Production                  |
+| `pnpm test`    | Run tests                   |
+| `pnpm lint`    | ESLint                      |
+| `pnpm format`  | Prettier                    |
+| `pnpm migrate` | Run migrations              |
+| `pnpm seed`    | Run seeds                   |
 
-## 🤝 Contributing
+---
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+## 🔒 Security
+
+- **Helmet** - Security headers
+- **CORS** - Configurable origins
+- **Rate Limiting** - Per route/user
+- **Password Hashing** - bcrypt (configurable)
+- **JWT Blacklisting** - Proper logout
+- **Input Validation** - Zod schemas
+
+---
+
+## 📚 Documentation
+
+| File                        | Description            |
+| --------------------------- | ---------------------- |
+| `docs/EMAIL_TOKENS.md`      | Email & token services |
+| `docs/UPLOAD_SERVICE.md`    | File upload guide      |
+| `docs/API_DOCUMENTATION.md` | Auto-docs setup        |
+| `README_DATABASE.md`        | Database configuration |
+
+---
+
+## 🛠️ Add a Feature
+
+1. **Model** → `src/models/FeatureModel.js`
+2. **Service** → `src/services/FeatureService.js`
+3. **Controller** → `src/controllers/FeatureController.js`
+4. **Routes** → `src/routes/featureRoutes.js`
+5. **Schema** → `src/validators/schemas.js`
+6. **Register** → `src/routes/index.js`
+7. **Docs** → `src/config/swagger.js`
+
+---
 
 ## 📄 License
 
-This project is licensed under the MIT License.
+MIT
+
+---
+
+**Happy Coding!** 🚀

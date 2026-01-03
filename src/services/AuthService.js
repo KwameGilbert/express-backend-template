@@ -1,15 +1,18 @@
 import { UserModel } from '../models/UserModel.js';
 import { generateTokens, verifyRefreshToken } from '../middlewares/auth.js';
+import { tokenService } from './TokenService.js';
+import { emailService } from './EmailService.js';
 import {
   BadRequestError,
   UnauthorizedError,
   ConflictError,
   NotFoundError,
 } from '../utils/errors.js';
-import { generateRandomString } from '../utils/helpers.js';
+import { env } from '../config/env.js';
 
 /**
  * Authentication Service
+ * Handles user authentication, registration, and account management
  */
 export class AuthService {
   /**
@@ -24,7 +27,7 @@ export class AuthService {
       throw new ConflictError('User with this email already exists');
     }
 
-    // Create user
+    // Create user (unverified by default)
     const user = await UserModel.create({
       email: email.toLowerCase(),
       password,
@@ -32,9 +35,17 @@ export class AuthService {
       last_name,
       role,
       status: 'active',
+      email_verified_at: null,
     });
 
-    // Generate tokens
+    // Generate verification token and send email
+    const { token: verificationToken } = await tokenService.createVerificationToken(user.id);
+    
+    // Send verification email (non-blocking)
+    emailService.sendVerificationEmail(user.email, user.first_name, verificationToken)
+      .catch(err => console.error('Failed to send verification email:', err.message));
+
+    // Generate auth tokens
     const tokenPayload = {
       id: user.id,
       email: user.email,
@@ -46,6 +57,7 @@ export class AuthService {
     return {
       user,
       ...tokens,
+      message: 'Registration successful. Please check your email to verify your account.',
     };
   }
 
@@ -95,9 +107,41 @@ export class AuthService {
   }
 
   /**
+   * Logout user - invalidate the token
+   */
+  static async logout(accessToken, refreshToken = null) {
+    // Calculate token expiration (decode without verifying)
+    const tokenParts = accessToken.split('.');
+    if (tokenParts.length === 3) {
+      try {
+        const payload = JSON.parse(Buffer.from(tokenParts[1], 'base64').toString());
+        const expiresAt = new Date(payload.exp * 1000);
+        
+        // Blacklist access token
+        await tokenService.blacklistToken(accessToken, expiresAt);
+        
+        // Blacklist refresh token if provided
+        if (refreshToken) {
+          await tokenService.blacklistToken(refreshToken, new Date(Date.now() + 30 * 24 * 60 * 60 * 1000));
+        }
+      } catch (e) {
+        // Ignore decode errors
+      }
+    }
+
+    return true;
+  }
+
+  /**
    * Refresh access token
    */
   static async refreshToken(refreshToken) {
+    // Check if token is blacklisted
+    const isBlacklisted = await tokenService.isBlacklisted(refreshToken);
+    if (isBlacklisted) {
+      throw new UnauthorizedError('Token has been invalidated');
+    }
+
     try {
       const decoded = verifyRefreshToken(refreshToken);
 
@@ -116,6 +160,59 @@ export class AuthService {
   }
 
   /**
+   * Verify email with token
+   */
+  static async verifyEmail(token) {
+    const tokenRecord = await tokenService.verifyVerificationToken(token);
+
+    if (!tokenRecord) {
+      throw new BadRequestError('Invalid or expired verification token');
+    }
+
+    // Update user
+    const user = await UserModel.update(tokenRecord.user_id, {
+      email_verified_at: new Date(),
+    });
+
+    if (!user) {
+      throw new NotFoundError('User not found');
+    }
+
+    // Send welcome email
+    emailService.sendWelcomeEmail(user.email, user.first_name)
+      .catch(err => console.error('Failed to send welcome email:', err.message));
+
+    return user;
+  }
+
+  /**
+   * Resend verification email
+   */
+  static async resendVerification(email) {
+    const user = await UserModel.findByEmail(email.toLowerCase());
+
+    if (!user) {
+      // Don't reveal if user exists
+      return true;
+    }
+
+    if (user.email_verified_at) {
+      throw new BadRequestError('Email is already verified');
+    }
+
+    // Invalidate old tokens
+    await tokenService.invalidateUserTokens(user.id, 'email_verification');
+
+    // Generate new token
+    const { token: verificationToken } = await tokenService.createVerificationToken(user.id);
+
+    // Send email
+    await emailService.sendVerificationEmail(user.email, user.first_name, verificationToken);
+
+    return true;
+  }
+
+  /**
    * Change user password
    */
   static async changePassword(userId, currentPassword, newPassword) {
@@ -125,9 +222,17 @@ export class AuthService {
       throw new BadRequestError('Current password is incorrect');
     }
 
+    const user = await UserModel.findById(userId);
+    
     await UserModel.update(userId, {
       password: newPassword,
     });
+
+    // Send notification email
+    if (user) {
+      emailService.sendPasswordChangedEmail(user.email, user.first_name)
+        .catch(err => console.error('Failed to send password changed email:', err.message));
+    }
 
     return true;
   }
@@ -143,16 +248,11 @@ export class AuthService {
       return true;
     }
 
-    const resetToken = generateRandomString(32);
-    const resetExpires = new Date(Date.now() + 3600000); // 1 hour
+    // Create reset token using TokenService
+    const { token: resetToken } = await tokenService.createPasswordResetToken(user.id);
 
-    await UserModel.update(user.id, {
-      password_reset_token: resetToken,
-      password_reset_expires: resetExpires,
-    });
-
-    // TODO: Send email with reset link
-    // EmailService.sendPasswordResetEmail(user.email, resetToken);
+    // Send email
+    await emailService.sendPasswordResetEmail(user.email, user.first_name, resetToken);
 
     return true;
   }
@@ -161,23 +261,25 @@ export class AuthService {
    * Reset password with token
    */
   static async resetPassword(token, newPassword) {
-    const user = await UserModel.findFirst({
-      password_reset_token: token,
-    });
+    const tokenRecord = await tokenService.verifyPasswordResetToken(token);
 
-    if (!user) {
+    if (!tokenRecord) {
       throw new BadRequestError('Invalid or expired reset token');
     }
 
-    if (new Date(user.password_reset_expires) < new Date()) {
-      throw new BadRequestError('Reset token has expired');
+    const user = await UserModel.findById(tokenRecord.user_id);
+
+    if (!user) {
+      throw new NotFoundError('User not found');
     }
 
     await UserModel.update(user.id, {
       password: newPassword,
-      password_reset_token: null,
-      password_reset_expires: null,
     });
+
+    // Send notification
+    emailService.sendPasswordChangedEmail(user.email, user.first_name)
+      .catch(err => console.error('Failed to send password changed email:', err.message));
 
     return true;
   }
@@ -200,7 +302,7 @@ export class AuthService {
    */
   static async updateProfile(userId, data) {
     // Prevent updating sensitive fields
-    const { password, role, status, ...safeData } = data;
+    const { password, role, status, email_verified_at, ...safeData } = data;
 
     const user = await UserModel.update(userId, safeData);
 

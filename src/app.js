@@ -51,6 +51,11 @@ const createApp = () => {
   app.use(express.json({ limit: '10mb' }));
   app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
+  // Serve uploaded files (only for local storage)
+  if (env.UPLOAD_STRATEGY === 'local') {
+    app.use(`/${env.UPLOAD_LOCAL_PATH}`, express.static(env.UPLOAD_LOCAL_PATH));
+  }
+
   // Mount routes
   app.use(routes);
 
