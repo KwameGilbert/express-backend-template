@@ -18,19 +18,19 @@ updates:
     labels:
       - 'dependencies'
       - 'automated'
-    reviewers:
-      - 'your-username' # Replace with your GitHub username
     groups:
-      # Group minor and patch updates together
-      minor-and-patch:
-        patterns:
-          - '*'
+      # Group all production dependencies together
+      production-dependencies:
+        dependency-type: 'production'
         update-types:
           - 'minor'
           - 'patch'
-      # Security updates get their own PRs
-      security:
-        applies-to: security-updates
+      # Group all dev dependencies together
+      dev-dependencies:
+        dependency-type: 'development'
+        update-types:
+          - 'minor'
+          - 'patch'
 
   # GitHub Actions updates
   - package-ecosystem: 'github-actions'
@@ -46,6 +46,10 @@ updates:
     labels:
       - 'github-actions'
       - 'automated'
+    groups:
+      actions:
+        patterns:
+          - '*'
 
   # Docker updates
   - package-ecosystem: 'docker'
