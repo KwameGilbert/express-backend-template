@@ -157,7 +157,7 @@ class UploadService {
 // Export singleton
 export const uploadService = new UploadService();
 
-// Shorthand exports
+
 export const upload = (file, group, opts) => uploadService.upload(file, group, opts);
 export const uploadMany = (files, group, opts) => uploadService.uploadMany(files, group, opts);
 export const deleteFile = (id, group) => uploadService.delete(id, group);

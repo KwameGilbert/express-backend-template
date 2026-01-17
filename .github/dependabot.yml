@@ -1,0 +1,63 @@
+# Dependabot Configuration
+# Automatically creates PRs for dependency updates
+
+version: 2
+
+updates:
+  # JavaScript/Node.js dependencies
+  - package-ecosystem: 'npm'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+      day: 'monday'
+      time: '09:00'
+      timezone: 'UTC'
+    open-pull-requests-limit: 10
+    commit-message:
+      prefix: 'chore(deps):'
+    labels:
+      - 'dependencies'
+      - 'automated'
+    reviewers:
+      - 'your-username' # Replace with your GitHub username
+    groups:
+      # Group minor and patch updates together
+      minor-and-patch:
+        patterns:
+          - '*'
+        update-types:
+          - 'minor'
+          - 'patch'
+      # Security updates get their own PRs
+      security:
+        applies-to: security-updates
+
+  # GitHub Actions updates
+  - package-ecosystem: 'github-actions'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+      day: 'monday'
+      time: '09:00'
+      timezone: 'UTC'
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: 'chore(actions):'
+    labels:
+      - 'github-actions'
+      - 'automated'
+
+  # Docker updates
+  - package-ecosystem: 'docker'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+      day: 'monday'
+      time: '09:00'
+      timezone: 'UTC'
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: 'chore(docker):'
+    labels:
+      - 'docker'
+      - 'automated'
