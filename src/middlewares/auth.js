@@ -29,7 +29,7 @@ export const authenticate = async (req, res, next) => {
     // Check if token is blacklisted
     const tokenSvc = await getTokenService();
     const isBlacklisted = await tokenSvc.isBlacklisted(token);
-    
+
     if (isBlacklisted) {
       throw new UnauthorizedError('Token has been invalidated');
     }
@@ -64,11 +64,11 @@ export const optionalAuth = async (req, res, next) => {
 
     if (authHeader && authHeader.startsWith('Bearer ')) {
       const token = authHeader.split(' ')[1];
-      
+
       // Check blacklist
       const tokenSvc = await getTokenService();
       const isBlacklisted = await tokenSvc.isBlacklisted(token);
-      
+
       if (!isBlacklisted) {
         const decoded = jwt.verify(token, env.JWT_SECRET);
 
@@ -81,7 +81,7 @@ export const optionalAuth = async (req, res, next) => {
     }
 
     next();
-  } catch (error) {
+  } catch (_error) {
     // Silently continue without user context
     next();
   }
@@ -117,9 +117,7 @@ export const requirePermission = (...requiredPermissions) => {
 
     const userPermissions = req.user.permissions || [];
 
-    const hasPermission = requiredPermissions.some((perm) =>
-      userPermissions.includes(perm)
-    );
+    const hasPermission = requiredPermissions.some((perm) => userPermissions.includes(perm));
 
     if (!hasPermission) {
       return next(new ForbiddenError('Insufficient permissions'));

@@ -11,7 +11,7 @@ export class HealthController {
    * Basic health check
    * GET /health
    */
-  static check = asyncHandler(async (req, res) => {
+  static check = asyncHandler((req, res) => {
     return ApiResponse.success(res, {
       status: 'healthy',
       timestamp: new Date().toISOString(),
@@ -72,7 +72,7 @@ export class HealthController {
     try {
       await db.raw('SELECT 1');
       return ApiResponse.success(res, { ready: true });
-    } catch (error) {
+    } catch (_error) {
       return res.status(503).json({
         success: false,
         data: { ready: false },
@@ -85,7 +85,7 @@ export class HealthController {
    * Liveness check (for Kubernetes)
    * GET /health/live
    */
-  static live = asyncHandler(async (req, res) => {
+  static live = asyncHandler((req, res) => {
     return ApiResponse.success(res, { live: true });
   });
 }

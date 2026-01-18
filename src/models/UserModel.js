@@ -46,7 +46,7 @@ class UserModelClass extends BaseModel {
   /**
    * Find user by email
    */
-  async findByEmail(email) {
+  findByEmail(email) {
     return this.findBy('email', email.toLowerCase());
   }
 
@@ -54,23 +54,21 @@ class UserModelClass extends BaseModel {
    * Find user by email including password hash
    */
   async findByEmailWithPassword(email) {
-    const record = await this.query()
-      .where('email', email.toLowerCase())
-      .first();
+    const record = await this.query().where('email', email.toLowerCase()).first();
     return record;
   }
 
   /**
    * Hash a password using configured algorithm
    */
-  async hashPassword(password) {
+  hashPassword(password) {
     return passwordHasher.hash(password);
   }
 
   /**
    * Compare password with hash using auto-detected algorithm
    */
-  async comparePassword(password, hash) {
+  comparePassword(password, hash) {
     return passwordHasher.verify(password, hash);
   }
 
@@ -78,9 +76,7 @@ class UserModelClass extends BaseModel {
    * Verify user password
    */
   async verifyPassword(userId, password) {
-    const user = await this.query()
-      .where(this.primaryKey, userId)
-      .first();
+    const user = await this.query().where(this.primaryKey, userId).first();
 
     if (!user || !user.password_hash) {
       return false;

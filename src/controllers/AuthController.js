@@ -101,12 +101,12 @@ export class AuthController {
    */
   static verifyEmail = asyncHandler(async (req, res) => {
     const { token } = req.query;
-    
+
     if (!token) {
       return ApiResponse.badRequest(res, 'Verification token is required');
     }
 
-    const user = await AuthService.verifyEmail(token);
+    await AuthService.verifyEmail(token);
 
     return ApiResponse.success(res, { verified: true }, 'Email verified successfully');
   });

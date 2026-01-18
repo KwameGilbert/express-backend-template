@@ -1,4 +1,3 @@
-import { Router } from 'express';
 import { ZodToOpenAPI } from './zodToOpenAPI.js';
 import * as schemas from '../validators/schemas.js';
 
@@ -139,7 +138,7 @@ export class AutoDocsGenerator {
    */
   static generateResponses(route) {
     const responses = {
-      '200': {
+      200: {
         description: 'Successful operation',
         content: {
           'application/json': {
