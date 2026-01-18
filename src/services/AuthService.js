@@ -8,7 +8,6 @@ import {
   ConflictError,
   NotFoundError,
 } from '../utils/errors.js';
-import { env } from '../config/env.js';
 
 /**
  * Authentication Service
@@ -40,10 +39,11 @@ export class AuthService {
 
     // Generate verification token and send email
     const { token: verificationToken } = await tokenService.createVerificationToken(user.id);
-    
+
     // Send verification email (non-blocking)
-    emailService.sendVerificationEmail(user.email, user.first_name, verificationToken)
-      .catch(err => console.error('Failed to send verification email:', err.message));
+    emailService
+      .sendVerificationEmail(user.email, user.first_name, verificationToken)
+      .catch((err) => console.error('Failed to send verification email:', err.message));
 
     // Generate auth tokens
     const tokenPayload = {
@@ -98,7 +98,7 @@ export class AuthService {
     const tokens = generateTokens(tokenPayload);
 
     // Remove password hash from response
-    const { password_hash, ...userWithoutPassword } = user;
+    const { password_hash: _password_hash, ...userWithoutPassword } = user;
 
     return {
       user: userWithoutPassword,
@@ -116,15 +116,18 @@ export class AuthService {
       try {
         const payload = JSON.parse(Buffer.from(tokenParts[1], 'base64').toString());
         const expiresAt = new Date(payload.exp * 1000);
-        
+
         // Blacklist access token
         await tokenService.blacklistToken(accessToken, expiresAt);
-        
+
         // Blacklist refresh token if provided
         if (refreshToken) {
-          await tokenService.blacklistToken(refreshToken, new Date(Date.now() + 30 * 24 * 60 * 60 * 1000));
+          await tokenService.blacklistToken(
+            refreshToken,
+            new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+          );
         }
-      } catch (e) {
+      } catch (_e) {
         // Ignore decode errors
       }
     }
@@ -154,7 +157,7 @@ export class AuthService {
       const tokens = generateTokens(tokenPayload);
 
       return tokens;
-    } catch (error) {
+    } catch (_error) {
       throw new UnauthorizedError('Invalid or expired refresh token');
     }
   }
@@ -179,8 +182,9 @@ export class AuthService {
     }
 
     // Send welcome email
-    emailService.sendWelcomeEmail(user.email, user.first_name)
-      .catch(err => console.error('Failed to send welcome email:', err.message));
+    emailService
+      .sendWelcomeEmail(user.email, user.first_name)
+      .catch((err) => console.error('Failed to send welcome email:', err.message));
 
     return user;
   }
@@ -223,15 +227,16 @@ export class AuthService {
     }
 
     const user = await UserModel.findById(userId);
-    
+
     await UserModel.update(userId, {
       password: newPassword,
     });
 
     // Send notification email
     if (user) {
-      emailService.sendPasswordChangedEmail(user.email, user.first_name)
-        .catch(err => console.error('Failed to send password changed email:', err.message));
+      emailService
+        .sendPasswordChangedEmail(user.email, user.first_name)
+        .catch((err) => console.error('Failed to send password changed email:', err.message));
     }
 
     return true;
@@ -278,8 +283,9 @@ export class AuthService {
     });
 
     // Send notification
-    emailService.sendPasswordChangedEmail(user.email, user.first_name)
-      .catch(err => console.error('Failed to send password changed email:', err.message));
+    emailService
+      .sendPasswordChangedEmail(user.email, user.first_name)
+      .catch((err) => console.error('Failed to send password changed email:', err.message));
 
     return true;
   }
@@ -302,7 +308,13 @@ export class AuthService {
    */
   static async updateProfile(userId, data) {
     // Prevent updating sensitive fields
-    const { password, role, status, email_verified_at, ...safeData } = data;
+    const {
+      password: _password,
+      role: _role,
+      status: _status,
+      email_verified_at: _email_verified_at,
+      ...safeData
+    } = data;
 
     const user = await UserModel.update(userId, safeData);
 

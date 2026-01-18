@@ -114,7 +114,7 @@ export const optionalTenant = async (req, res, next) => {
     }
 
     next();
-  } catch (error) {
+  } catch (_error) {
     // Silently continue without tenant context
     req.tenant = null;
     req.db = db;

@@ -33,16 +33,16 @@ class PasswordHasher {
     switch (this.algorithm.toLowerCase()) {
       case HashAlgorithms.BCRYPT:
         return this.hashWithBcrypt(password);
-      
+
       case HashAlgorithms.SCRYPT:
         return this.hashWithScrypt(password);
-      
+
       case HashAlgorithms.PBKDF2:
         return this.hashWithPbkdf2(password);
-      
+
       case HashAlgorithms.ARGON2:
         return this.hashWithArgon2(password);
-      
+
       default:
         throw new Error(`Unsupported hash algorithm: ${this.algorithm}`);
     }
@@ -61,16 +61,16 @@ class PasswordHasher {
     switch (algorithm) {
       case HashAlgorithms.BCRYPT:
         return this.verifyBcrypt(password, hash);
-      
+
       case HashAlgorithms.SCRYPT:
         return this.verifyScrypt(password, hash);
-      
+
       case HashAlgorithms.PBKDF2:
         return this.verifyPbkdf2(password, hash);
-      
+
       case HashAlgorithms.ARGON2:
         return this.verifyArgon2(password, hash);
-      
+
       default:
         throw new Error(`Unable to detect hash algorithm from hash: ${hash}`);
     }
@@ -94,13 +94,13 @@ class PasswordHasher {
     if (hash.startsWith('$argon2')) {
       return HashAlgorithms.ARGON2;
     }
-    
+
     // Default fallback
     return this.algorithm;
   }
 
   // ==================== BCRYPT ====================
-  
+
   /**
    * Hash password with bcrypt
    */
@@ -116,14 +116,14 @@ class PasswordHasher {
   }
 
   // ==================== SCRYPT ====================
-  
+
   /**
    * Hash password with scrypt
    */
   async hashWithScrypt(password) {
     return new Promise((resolve, reject) => {
       const salt = crypto.randomBytes(this.saltLength).toString('hex');
-      
+
       crypto.scrypt(password, salt, this.keyLength, (err, derivedKey) => {
         if (err) reject(err);
         // Format: $scrypt$salt$hash
@@ -150,14 +150,14 @@ class PasswordHasher {
           if (err) reject(err);
           resolve(derivedKey.toString('hex') === originalHash);
         });
-      } catch (error) {
+      } catch (_error) {
         resolve(false);
       }
     });
   }
 
   // ==================== PBKDF2 ====================
-  
+
   /**
    * Hash password with PBKDF2
    */
@@ -165,7 +165,7 @@ class PasswordHasher {
     return new Promise((resolve, reject) => {
       const salt = crypto.randomBytes(this.saltLength).toString('hex');
       const iterations = this.rounds * 1000; // Convert rounds to iterations
-      
+
       crypto.pbkdf2(password, salt, iterations, this.keyLength, 'sha512', (err, derivedKey) => {
         if (err) reject(err);
         // Format: $pbkdf2$iterations$salt$hash
@@ -193,14 +193,14 @@ class PasswordHasher {
           if (err) reject(err);
           resolve(derivedKey.toString('hex') === originalHash);
         });
-      } catch (error) {
+      } catch (_error) {
         resolve(false);
       }
     });
   }
 
   // ==================== ARGON2 ====================
-  
+
   /**
    * Hash password with Argon2
    * Note: Requires 'argon2' package to be installed
@@ -209,7 +209,7 @@ class PasswordHasher {
     try {
       const argon2 = await import('argon2');
       return argon2.hash(password);
-    } catch (error) {
+    } catch (_error) {
       throw new Error('Argon2 package not installed. Run: npm install argon2');
     }
   }
@@ -222,7 +222,7 @@ class PasswordHasher {
     try {
       const argon2 = await import('argon2');
       return argon2.verify(hash, password);
-    } catch (error) {
+    } catch (_error) {
       throw new Error('Argon2 package not installed. Run: npm install argon2');
     }
   }
