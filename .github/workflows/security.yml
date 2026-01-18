@@ -40,7 +40,7 @@ jobs:
   # Dependency Review (for PRs)
   # ============================================
   dependency-review:
-    name: 📦 Dependency Review
+    name: 📦 Dependency Review (PRs only)
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
 
