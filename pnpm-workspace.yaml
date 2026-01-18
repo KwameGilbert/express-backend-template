@@ -1,3 +1,9 @@
+# pnpm workspace configuration
+# This project is not a monorepo, but we need the packages field for GitHub Actions caching
+packages:
+  - '.'
+
+# Only allow these packages to run lifecycle scripts during install
 onlyBuiltDependencies:
   - '@scarf/scarf'
   - bcrypt
