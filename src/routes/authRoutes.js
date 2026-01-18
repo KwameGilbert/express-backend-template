@@ -24,23 +24,14 @@ router.post(
  * @desc Login user
  * @access Public
  */
-router.post(
-  '/login',
-  authRateLimiter,
-  validateBody(authSchemas.login),
-  AuthController.login
-);
+router.post('/login', authRateLimiter, validateBody(authSchemas.login), AuthController.login);
 
 /**
  * @route POST /auth/refresh
  * @desc Refresh access token
  * @access Public
  */
-router.post(
-  '/refresh',
-  validateBody(authSchemas.refreshToken),
-  AuthController.refreshToken
-);
+router.post('/refresh', validateBody(authSchemas.refreshToken), AuthController.refreshToken);
 
 /**
  * @route GET /auth/verify-email

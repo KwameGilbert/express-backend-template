@@ -70,9 +70,7 @@ class TokenService {
     }
 
     // Mark token as used
-    await db(this.tableName)
-      .where({ id: record.id })
-      .update({ used_at: new Date() });
+    await db(this.tableName).where({ id: record.id }).update({ used_at: new Date() });
 
     logger.debug({ type, userId: record.user_id }, 'Token verified and consumed');
 
@@ -84,13 +82,13 @@ class TokenService {
    */
   async invalidateUserTokens(userId, type = null) {
     let query = db(this.tableName).where({ user_id: userId });
-    
+
     if (type) {
       query = query.where({ type });
     }
 
     await query.update({ used_at: new Date() });
-    
+
     logger.debug({ userId, type }, 'User tokens invalidated');
   }
 
@@ -129,9 +127,7 @@ class TokenService {
   async isBlacklisted(token) {
     const tokenHash = this.hashToken(token);
 
-    const record = await db(this.blacklistTable)
-      .where({ token_hash: tokenHash })
-      .first();
+    const record = await db(this.blacklistTable).where({ token_hash: tokenHash }).first();
 
     return !!record;
   }
@@ -151,20 +147,19 @@ class TokenService {
     const now = new Date();
 
     // Delete expired tokens
-    const deletedTokens = await db(this.tableName)
-      .where('expires_at', '<', now)
-      .del();
+    const deletedTokens = await db(this.tableName).where('expires_at', '<', now).del();
 
     // Delete expired blacklist entries
-    const deletedBlacklist = await db(this.blacklistTable)
-      .where('expires_at', '<', now)
-      .del();
+    const deletedBlacklist = await db(this.blacklistTable).where('expires_at', '<', now).del();
 
     if (deletedTokens > 0 || deletedBlacklist > 0) {
-      logger.info({ 
-        deletedTokens, 
-        deletedBlacklist,
-      }, 'Cleaned up expired tokens');
+      logger.info(
+        {
+          deletedTokens,
+          deletedBlacklist,
+        },
+        'Cleaned up expired tokens'
+      );
     }
 
     return { deletedTokens, deletedBlacklist };
@@ -192,7 +187,7 @@ class TokenService {
   async createPasswordResetToken(userId) {
     // Invalidate existing reset tokens
     await this.invalidateUserTokens(userId, 'password_reset');
-    
+
     return this.createToken('password_reset', userId, 60); // 1 hour
   }
 

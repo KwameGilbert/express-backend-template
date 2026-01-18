@@ -47,10 +47,7 @@ export class BaseModel {
    */
   async findAll(options = {}) {
     const { page, limit, offset } = parsePagination(options);
-    const { field: sortField, order: sortOrder } = parseSort(
-      options,
-      this.sortableFields
-    );
+    const { field: sortField, order: sortOrder } = parseSort(options, this.sortableFields);
 
     let query = this.query();
 
@@ -94,9 +91,7 @@ export class BaseModel {
    * Find a single record by ID
    */
   async findById(id) {
-    const record = await this.query()
-      .where(`${this.tableName}.${this.primaryKey}`, id)
-      .first();
+    const record = await this.query().where(`${this.tableName}.${this.primaryKey}`, id).first();
 
     return record ? this.hideFields(record) : null;
   }
@@ -118,9 +113,7 @@ export class BaseModel {
    * Find a single record by field value
    */
   async findBy(field, value) {
-    const record = await this.query()
-      .where(`${this.tableName}.${field}`, value)
-      .first();
+    const record = await this.query().where(`${this.tableName}.${field}`, value).first();
 
     return record ? this.hideFields(record) : null;
   }
@@ -129,8 +122,7 @@ export class BaseModel {
    * Find records by field value
    */
   async findAllBy(field, value) {
-    const records = await this.query()
-      .where(`${this.tableName}.${field}`, value);
+    const records = await this.query().where(`${this.tableName}.${field}`, value);
 
     return records.map((record) => this.hideFields(record));
   }
@@ -155,9 +147,7 @@ export class BaseModel {
   async create(data) {
     const record = this.prepareForInsert(data);
 
-    const [created] = await this.getConnection()(this.tableName)
-      .insert(record)
-      .returning('*');
+    const [created] = await this.getConnection()(this.tableName).insert(record).returning('*');
 
     return this.hideFields(created);
   }
@@ -168,9 +158,7 @@ export class BaseModel {
   async createMany(dataArray) {
     const records = dataArray.map((data) => this.prepareForInsert(data));
 
-    const created = await this.getConnection()(this.tableName)
-      .insert(records)
-      .returning('*');
+    const created = await this.getConnection()(this.tableName).insert(records).returning('*');
 
     return created.map((record) => this.hideFields(record));
   }
@@ -250,8 +238,10 @@ export class BaseModel {
    * Restore a soft-deleted record
    */
   async restore(id) {
-    const query = this.getConnection()(this.tableName)
-      .where(`${this.tableName}.${this.primaryKey}`, id);
+    const query = this.getConnection()(this.tableName).where(
+      `${this.tableName}.${this.primaryKey}`,
+      id
+    );
 
     const [updated] = await query
       .update({ deleted_at: null, updated_at: new Date() })

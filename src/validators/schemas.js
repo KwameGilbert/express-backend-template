@@ -8,8 +8,14 @@ export const commonSchemas = {
   email: z.string().email(),
   password: z.string().min(8).max(128),
   pagination: z.object({
-    page: z.string().optional().transform((v) => parseInt(v) || 1),
-    limit: z.string().optional().transform((v) => parseInt(v) || 20),
+    page: z
+      .string()
+      .optional()
+      .transform((v) => parseInt(v) || 1),
+    limit: z
+      .string()
+      .optional()
+      .transform((v) => parseInt(v) || 20),
   }),
 };
 
